@@ -4,8 +4,6 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 public class AccountApp {
@@ -43,79 +41,81 @@ public class AccountApp {
      * Read and write some example data.
      */
     private void processData() throws Exception {
-        // create an instance of Account
+        Boolean flag = true;
+       while(flag) {
+           System.out.println("Select C, R, U, D, or exit");
+           Scanner scanner = new Scanner(System.in);
+           String option = scanner.next();
+           if(option.equals("exit"))
+               flag =false;
+           else
+               selectOption(option);
+       }
+    }
+    public void selectOption(String input) throws Exception{
+            if(input.equals("C"))
+            System.out.println(create());
+            else if(input.equals("R"))
+            System.out.println(read());
+            else if(input.equals("U"))
+            System.out.println(update());
+            else if(input.equals("D"))
+            System.out.println(delete());
+            else
+                System.out.println("Incorrect command");
+        }
+
+
+    public String create() throws SQLException {
         Account account = new Account();
+        account.setName(addName());
+        account.setPassword(addPassword());
+        accountDao.create(account);
+        accountDao.update(account);
+        return "New account is #" + account.getId();
+    }
+
+    public String addName(){
         System.out.println("Enter account name");
         Scanner scan = new Scanner(System.in);
-        String name = scan.nextLine();
-        account.setName(name);
+        return scan.nextLine();
+    }
 
+    public String addPassword(){
         System.out.println("Enter password");
         Scanner scan2 = new Scanner(System.in);
-        String password = scan2.nextLine();
-        account.setPassword(password);
+        return scan2.nextLine();
+    }
 
-        // persist the account object to the database
-        // update the database after changing the object
-        System.out.println(create(account));
-
+    public String read() throws SQLException{
+        Account account = getAccount();
+        int id = account.getId();
+        String name = account.getName();
+        String password = account.getPassword();
+        System.out.println("| ID |   Name    |   Password   |");
+        return "  "+id + "  " + name +"   " + password;
+    }
+    public Account getAccount() throws SQLException {
         System.out.println("Enter ID");
         Scanner scan4 = new Scanner(System.in);
         int x = scan4.nextInt();
-        System.out.println(findById(x));
-
-        System.out.println("Enter ID and Name");
-        Scanner scan5 = new Scanner(System.in);
-        String j = scan5.nextLine();
-
-        String newRow = j.replaceAll("\n", "");
-        List<String> items = Arrays.asList(newRow.split("\\s*,\\s*"));
-        long y = Long.parseLong(items.get(0));
-        String updatedName = items.get(1);
-        System.out.println(updateName(y, updatedName));
-
-
-
-        // delete the account
-        System.out.println("Enter ID");
-        Scanner scan3 = new Scanner(System.in);
-        int id = scan2.nextInt();
-        accountDao.deleteById(id);
-    }
-    public int create(Account account) throws SQLException {
-        accountDao.create(account);
-        accountDao.update(account);
-        return (int) account.getId();
+        return accountDao.queryForId(x);
     }
 
-    /**
-     * Find the user in the database with the given id
-     * @param id id of the user
-     * @return The user associated with that id
-     * @throws SQLException
-     */
-    public Account findById(long id) throws SQLException {
-        return accountDao.queryForId((int) id);
-    }
-
-    /**
-     * Given a user id, find the user, and update the user name.
-     * @param id id of the user
-     * @param newName the user new name
-     * @throws SQLException
-     */
-    public String updateName(long id, String newName) throws SQLException {
-        Account temp = findById(id);
-        temp.setName(newName);
+    public String update() throws SQLException {
+        Account temp = getAccount();
+        temp.setName(addName());
         accountDao.update(temp);
         return "Account Updated";
     }
 
-    public void deleteById(long id) throws SQLException {
-        accountDao.deleteById((int) id);
+    public String delete() throws SQLException {
+        System.out.println("Enter ID");
+        Scanner scan3 = new Scanner(System.in);
+        int id = scan3.nextInt();
+        accountDao.deleteById(id);
+        return "Account deleted";
     }
-
-
 
     /**
      * Setup our  DAOs
